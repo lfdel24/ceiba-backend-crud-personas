@@ -18,12 +18,25 @@ public class ManejadorError {
 
     private static final Logger LOGGER_ERROR = LoggerFactory.getLogger(ManejadorError.class);
     private static final String OCURRIO_UN_ERROR_FAVOR_CONTACTAR_AL_ADMINISTRADOR = "Ocurrió un error favor contactar al administrador.";
+    private static final String EL_CUERPO_DE_LA_SOLICITUD_ES_OBLIGATORIO = "El cuerpo de la solicitud es obligatorio.";
 
     private static final ConcurrentHashMap<String, Integer> CODIGOS_ESTADO = new ConcurrentHashMap<>();
 
     public ManejadorError() {
         CODIGOS_ESTADO.put(ExcepcionPersonaRepetida.class.getSimpleName(), HttpStatus.CONFLICT.value());
         CODIGOS_ESTADO.put(ExcepcionValorObligatorio.class.getSimpleName(), HttpStatus.BAD_REQUEST.value());
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public final ResponseEntity<Error> hableHttpMessageNotReadableException(Exception exception) {
+        ResponseEntity<Error> resultado;
+        String excepcionNombre = exception.getClass().getSimpleName();
+        String mensaje = exception.getMessage();
+        Integer codigo = CODIGOS_ESTADO.get(excepcionNombre);
+        Error error = new Error(excepcionNombre, EL_CUERPO_DE_LA_SOLICITUD_ES_OBLIGATORIO);
+        resultado = new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        LOGGER_ERROR.error(excepcionNombre, exception);
+        return resultado;
     }
 
     @ExceptionHandler(Exception.class)
