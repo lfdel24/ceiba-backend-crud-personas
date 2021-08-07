@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -18,38 +19,50 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import net.bytebuddy.implementation.bytecode.Throw;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+
 @RestController
 @RequestMapping("/personas")
 public class ControladorPersona {
 
-    private static final String CUERPO_REUERIDO = "Cuerpo requerido: {'numero':'valor','nombreCompleto':'valor'}";
+    private final String NO_EXISTE_UNA_PERSONA_CON_EL_ID = "No existe una persona con el id: ";
 
     @Autowired
     private ServicioPersona servicio;
 
     @GetMapping
-    public ResponseEntity<List<Persona>> findAll() {
+    public ResponseEntity<List<Persona>> findAll() throws Exception {
         return ResponseEntity.ok(this.servicio.findAll());
     }
 
     @PostMapping
-    public ResponseEntity<Persona> create(@RequestBody Map<String, Object> json) throws Exception {
-        Identificacion identificacion = Identificacion.crear(TipoIdentificacion.CEDULA, obtenerValor(json, "numero"));
-        Persona persona = Persona.crear(identificacion, obtenerValor(json, "nombreCompleto"), LocalDate.now());
-        this.servicio.guardar(persona);
+    public ResponseEntity<Persona> create(@RequestBody Optional<Map<String, Object>> json) throws Exception {
+        Persona persona = this.servicio.guardar(json);
         return ResponseEntity.ok(persona);
     }
 
-    private String obtenerValor(Map<String, Object> json, String llave) throws Exception {
-        if (json.get(llave) == null) {
-            throw new ExcepcionValorObligatorio(CUERPO_REUERIDO);
+    @GetMapping("/{id}")
+    public ResponseEntity<?> read(@PathVariable(name = "id") Long id) throws Exception {
+        Optional<Persona> optional = this.servicio.get(id);
+        if (optional.isPresent()) {
+            return ResponseEntity.ok(optional.get());
         }
-        return json.get(llave).toString();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable(name = "id") Long id) throws Exception {
+        this.servicio.delete(id);
+        return ResponseEntity.ok().build();
     }
 
 }

@@ -18,7 +18,7 @@ public class ManejadorError {
 
     private static final Logger LOGGER_ERROR = LoggerFactory.getLogger(ManejadorError.class);
     private static final String OCURRIO_UN_ERROR_FAVOR_CONTACTAR_AL_ADMINISTRADOR = "Ocurrió un error favor contactar al administrador.";
-    private static final String EL_CUERPO_DE_LA_SOLICITUD_ES_OBLIGATORIO = "El cuerpo de la solicitud es obligatorio.";
+    private static final String EL_CUERPO_DE_LA_SOLICITUD_ES_OBLIGATORIO = "El cuerpo de la solicitud es obligatoria.";
 
     private static final ConcurrentHashMap<String, Integer> CODIGOS_ESTADO = new ConcurrentHashMap<>();
 
